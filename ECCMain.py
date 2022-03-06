@@ -17,9 +17,6 @@ def navBarDisplay(_frame):
 
 
 # class for window
-
-
-
 class Win(tk.Tk):
 
     # window configuration and initiation
@@ -100,10 +97,7 @@ class Win(tk.Tk):
         # -- displays for navigation bar
         navBarDisplay(sideBarFrame)
         # -- displays for Eorzea Time
-        while running:
-            self.EorzeaTimeDisplay(timerFrame)
-
-
+        self.EorzeaTimeDisplay()
 
     # function for moving window
     def move_window(self, event):
@@ -122,15 +116,19 @@ class Win(tk.Tk):
         itemDLabel = tk.Label(self, text="".format(item.id))
         itemDLabel.pack()
 
-    def EorzeaTimeDisplay(self, _frame):
-        localEpoch = time.time()
-        epoch = localEpoch * 20.571428571428573
+    def EorzeaTimeDisplay(self):
+        localEpoch = int(time.time() * 1000)
+        epoch = localEpoch * 20.57142857142857
         minutes = int((epoch / (1000 * 60)) % 60)
         hours = int((epoch / (1000 * 60 * 60)) % 24)
-        display = str(hours) + str(minutes)
+        eHours = f'{hours:02d}'
+        eMinutes = f'{minutes:02d}'
+        display = str(eHours) + ":" + str(eMinutes)
 
-        timerLbl = tk.Label(_frame, text=display)
-        timerLbl.grid(row=2, column=3)
+        timerLbl = tk.Label(self, text=display, bg='#443E3E', fg='white', font=('Arial', 20))
+        timerLbl.grid(row=1, column=1)
+        timerLbl.after(2550, self.EorzeaTimeDisplay)
+
 
 
 win = Win()
