@@ -41,7 +41,7 @@ class Win(tk.Tk):
         # -------------------------------------
 
         title_bar = tk.Frame(self, height=25, bg='#2e2e2e', relief='raised', bd=1)
-        title_bar.grid(row=0, column=0, columnspan=2, sticky='ew')
+        title_bar.grid(row=0, column=0, columnspan=4, sticky='ew')
         tk.Button(title_bar, text='x', command=self.destroy).pack(fill='x', side="right")
 
         # bind mouse button 1 to move window using title bar
@@ -52,13 +52,13 @@ class Win(tk.Tk):
         # create and configure frames for navigation bar, main console, timers
         # -------------------------------------
         sideBarFrame = tk.Frame(self, height=800, width=350, bg='#443E3E', relief='raised', bd=1)
-        mainConsoleFrame = tk.Frame(self, height=600, width=1100, bg='#443E3E', relief='groove', bd=1)
-        timerFrame = tk.Frame(self, height=200, width=1100, bg='#443E3E', relief='groove', bd=1)
+        mainConsoleFrame = tk.Frame(self, height=700, width=1100, bg='#443E3E', relief='groove', bd=1)
+        timerFrame = tk.Frame(self, height=100, width=1100, bg='#443E3E', relief='groove', bd=1)
 
         # configure grid layout  for each frame      
         sideBarFrame.grid(row=1, column=0, rowspan=4, sticky='w')
-        mainConsoleFrame.grid(row=2, column=1, sticky=tk.NW)
-        timerFrame.grid(row=1, column=1, sticky=tk.N)
+        mainConsoleFrame.grid(row=2, column=1, columnspan=3, sticky=tk.NW)
+        timerFrame.grid(row=1, column=1, columnspan=3, sticky=tk.N)
 
         # disable resizing of frames to widgets
         mainConsoleFrame.grid_propagate(0)
@@ -69,9 +69,6 @@ class Win(tk.Tk):
         itemDisplayFrame = tk.Frame(mainConsoleFrame, width=150, height=150, bd=1, bg='#858585')
         itemDisplayFrame.grid(row=0, column=0, padx=20, pady=20)  # will need to configure in future to populate more
         itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
-
-        eorzeanTimerFrame = tk.Frame(timerFrame)
-        eorzeanTimerFrame.grid(row=0, column=0)
 
         # -------------------------------------
         # API
@@ -98,6 +95,12 @@ class Win(tk.Tk):
         navBarDisplay(sideBarFrame)
         # -- displays for Eorzea Time
         self.EorzeaTimeDisplay()
+        # -- display for Local Time
+        self.LocalTimeDisplay()
+
+    # --------------------------------------
+    # Functions
+    # ---------------------------------------
 
     # function for moving window
     def move_window(self, event):
@@ -116,19 +119,28 @@ class Win(tk.Tk):
         itemDLabel = tk.Label(self, text="".format(item.id))
         itemDLabel.pack()
 
+    # Function for calculating Eorzea time and displaying on a label
     def EorzeaTimeDisplay(self):
-        localEpoch = int(time.time() * 1000)
-        epoch = localEpoch * 20.57142857142857
-        minutes = int((epoch / (1000 * 60)) % 60)
-        hours = int((epoch / (1000 * 60 * 60)) % 24)
-        eHours = f'{hours:02d}'
-        eMinutes = f'{minutes:02d}'
-        display = str(eHours) + ":" + str(eMinutes)
-
+        localEpoch = int(time.time() * 1000)  # local epoch time
+        epoch = localEpoch * 20.57142857142857  # local epoch times 3600/175 for eorzea time conversion
+        minutes = int((epoch / (1000 * 60)) % 60)  # ticks from epoch calculated into minutes
+        hours = int((epoch / (1000 * 60 * 60)) % 24)  # ticks from epoch calculated into hours
+        eHours = f'{hours:02d}'  # format hours to display 2 digits
+        eMinutes = f'{minutes:02d}'  # format minutes to display 2 digits
+        display = str(eHours) + ":" + str(eMinutes)  # combine hours and minutes into one string
+        # label for time placement
         timerLbl = tk.Label(self, text=display, bg='#443E3E', fg='white', font=('Arial', 20))
         timerLbl.grid(row=1, column=1)
         timerLbl.after(2550, self.EorzeaTimeDisplay)
 
+    # Function for local time
+    def LocalTimeDisplay(self):
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+
+        currentTimeLabel = tk.Label(self, text=current_time, bg='#443E3E', fg='white', font=('Arial', 20))
+        currentTimeLabel.grid(row=1, column=2)
+        currentTimeLabel.after(1000, self.LocalTimeDisplay)
 
 
 win = Win()
