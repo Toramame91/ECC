@@ -129,18 +129,18 @@ class Win(tk.Tk):
         eMinutes = f'{minutes:02d}'  # format minutes to display 2 digits
         display = str(eHours) + ":" + str(eMinutes)  # combine hours and minutes into one string
         # label for time placement
-        timerLbl = tk.Label(self, text=display, bg='#443E3E', fg='white', font=('Arial', 20))
+        timerLbl = tk.Label(self, text="E.T.  " + display, bg='#443E3E', fg='white', font=('calibri', 20, 'bold'))
         timerLbl.grid(row=1, column=1)
         timerLbl.after(2550, self.EorzeaTimeDisplay)
 
     # Function for local time
     def LocalTimeDisplay(self):
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-
-        currentTimeLabel = tk.Label(self, text=current_time, bg='#443E3E', fg='white', font=('Arial', 20))
-        currentTimeLabel.grid(row=1, column=2)
-        currentTimeLabel.after(1000, self.LocalTimeDisplay)
+        now = datetime.now()  # get current local time
+        current_time = now.strftime("%H:%M:%S")  # display local time in Hour:Minute:Second format
+        # label for time placement
+        ctLabel = tk.Label(self, text="L.T.  " + current_time, bg='#443E3E', fg='white', font=('calibri', 20, 'bold'))
+        ctLabel.grid(row=1, column=2)
+        ctLabel.after(1000, self.LocalTimeDisplay)
 
 
 win = Win()
