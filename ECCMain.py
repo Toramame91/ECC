@@ -1,8 +1,11 @@
+import io
 import json
 import tkinter as tk
 from datetime import datetime
+from urllib.request import urlopen
 import time
 import requests
+from PIL import ImageTk, Image
 
 
 def navBarDisplay(_frame):
@@ -30,7 +33,6 @@ class Win(tk.Tk):
         self.wm_geometry("1280x800")  # window size
         self.configure(background="#858585")  # window background color
         self.minsize(400, 400)  # minimum size for window
-        running = True
 
         # set starting position of window to be 0,0
         self.x = 0
@@ -74,18 +76,43 @@ class Win(tk.Tk):
         # API
         # -------------------------------------
 
-        # request API
-        response_API = requests.get('https://xivapi.com/item/36195?columns=ID,Name,Icon,Description,LevelItem')
+        # API REQUESTS ************************
 
-        # create JSON to load from
-        data = response_API.text
-        parse_json = json.loads(data)
+        # REQUESTS FOR GATHERING ITEM DATA
+        gatheringInfo_API = requests.get('https://xivapi.com/GatheringPointBase/856?columns=Item1.Item')
+        gatheringPointInfo_API = requests.get('https://xivapi.com/GatheringPoint/34043?columns=PlaceName,'
+                                              'TerritoryType.PlaceName')
+
+        # JSON CREATION ***********************
+
+        # JSONS WITH GATHERING ITEM DATA
+        gatheringPointBaseData = gatheringInfo_API.text
+        parse_GatherPointBaseData = json.loads(gatheringPointBaseData)
+
+        gatheringPointData = gatheringPointInfo_API.text
+        parse_gatheringPointData = json.loads(gatheringPointData)
 
         # name parse, filters results and name from results.  Label displays results.
-        itemName = parse_json['Name']
-        itemID = parse_json['ID']
-        tk.Label(itemDisplayFrame, text="Name: " + itemName + "\n" + "item ID: " + str(itemID),
+        itemName = parse_GatherPointBaseData['Item1']['Item']['Name']
+        locationMapName = parse_gatheringPointData['TerritoryType']['PlaceName']['Name']
+        locationPlaceName = parse_gatheringPointData['PlaceName']['Name']
+        iconURLParse = parse_GatherPointBaseData['Item1']['Item']['IconHD']
+        #IMAGE PARSE
+        # open url to read into memory stream
+        IconURL = urlopen(iconURLParse)
+        # create image file object
+        avatarPic = io.BytesIO(IconURL.read())
+        # use PIL to open jpeg file then convert to image Tkinter can use
+        pil_img = Image.open(avatarPic)
+        itemImage = ImageTk.PhotoImage(pil_img)
+
+        # LABEL
+        tk.Label(itemDisplayFrame,
+                 text="Name: " + itemName + "\n" + "Location: " + locationPlaceName + " ," + locationMapName,
                  relief='flat', justify='left', bg='#858585').grid(row=1, column=1, sticky=tk.W)
+
+        iconDisplay = tk.Label(itemDisplayFrame, image=itemImage, bg="#202124")
+        iconDisplay.grid(row=0, column=0, rowspan=2)
 
         # -------------------------------------
         # Displays  * All display function calls will fall under here
