@@ -68,9 +68,9 @@ class Win(tk.Tk):
         timerFrame.grid_propagate(0)
 
         # create another frame within main console
-        itemDisplayFrame = tk.Frame(mainConsoleFrame, width=150, height=150, bd=1, bg='#858585')
-        itemDisplayFrame.grid(row=0, column=0, padx=20, pady=20)  # will need to configure in future to populate more
-        itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
+        itemDisplayFrame = tk.Frame(mainConsoleFrame, width=250, height=150, bd=1, bg='#858585', relief='groove')
+        itemDisplayFrame.grid(row=0, column=0, padx=10, pady=10)  # will need to configure in future to populate more
+        # itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
 
         # -------------------------------------
         # API
@@ -80,7 +80,8 @@ class Win(tk.Tk):
 
         # REQUESTS FOR GATHERING ITEM DATA
         gatheringInfo_API = requests.get('https://xivapi.com/GatheringPointBase/856?columns=Item1.Item')
-        gatheringPointInfo_API = requests.get('https://xivapi.com/GatheringPoint/34043?columns=PlaceName,'
+        gatheringPointInfo_API = requests.get('https://xivapi.com/GatheringPoint/34043?columns=GatheringPointTransient,'
+                                              'PlaceName,'
                                               'TerritoryType.PlaceName')
 
         # JSON CREATION ***********************
@@ -96,23 +97,48 @@ class Win(tk.Tk):
         itemName = parse_GatherPointBaseData['Item1']['Item']['Name']
         locationMapName = parse_gatheringPointData['TerritoryType']['PlaceName']['Name']
         locationPlaceName = parse_gatheringPointData['PlaceName']['Name']
+        nodeSpawnTime0 = parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime0']
+        nodeSpawnTime1 = parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime1']
+        fNodeSpawnTime0 = f'{nodeSpawnTime0:04d}'
+        fNodeSpawnTime1 = f'{nodeSpawnTime1:04d}'
         iconURLParse = parse_GatherPointBaseData['Item1']['Item']['IconHD']
-        #IMAGE PARSE
+        # IMAGE PARSE
         # open url to read into memory stream
-        IconURL = urlopen(iconURLParse)
+        IconURL = urlopen(
+            'https://static.wikia.nocookie.net/ffxiv_gamepedia/images/2/29/Elm_Lumber.png/revision/latest/scale-to-width-down/128?cb=20170114190928')
         # create image file object
         avatarPic = io.BytesIO(IconURL.read())
         # use PIL to open jpeg file then convert to image Tkinter can use
         pil_img = Image.open(avatarPic)
-        itemImage = ImageTk.PhotoImage(pil_img)
+        resized = pil_img.resize((50, 50), Image.ANTIALIAS)
+        itemImage = ImageTk.PhotoImage(resized)
 
         # LABEL
         tk.Label(itemDisplayFrame,
-                 text="Name: " + itemName + "\n" + "Location: " + locationPlaceName + " ," + locationMapName,
-                 relief='flat', justify='left', bg='#858585').grid(row=1, column=1, sticky=tk.W)
+                 text="Name: " + itemName,
+                 relief='flat', justify='left', bg='#858585').grid(row=0, column=1, columnspan=2)
+
+        tk.Label(itemDisplayFrame,
+                 text="Location: " + locationPlaceName + " ," + locationMapName,
+                 relief='flat', justify='left', bg='#858585').grid(row=1, column=1, columnspan=2)
 
         iconDisplay = tk.Label(itemDisplayFrame, image=itemImage, bg="#202124")
         iconDisplay.grid(row=0, column=0, rowspan=2)
+        iconDisplay.image = itemImage
+
+        # labels for spawn time
+        tk.Label(itemDisplayFrame,
+                 text="Spawn Time", bg='#858585').grid(row=2, column=0, columnspan=2, sticky=tk.W)
+
+        tk.Label(itemDisplayFrame,
+                 text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1, bg='#858585').grid(row=3, column=0,
+                                                                                    columnspan=2, sticky=tk.W)
+
+        # labels for active/cooldown timers
+        tk.Label(itemDisplayFrame,
+                 text="Active/ Cooldown", bg='#858585').grid(row=2, column=2, columnspan=2, sticky=tk.E)
+
+        self.CooldownCountdown()
 
         # -------------------------------------
         # Displays  * All display function calls will fall under here
@@ -140,12 +166,6 @@ class Win(tk.Tk):
         self.x = event.x
         self.y = event.y
 
-    def itemDisplayFrame(self, item):
-        tooltipFrame = tk.Frame(self.itemGrid)
-        self.item = item
-        itemDLabel = tk.Label(self, text="".format(item.id))
-        itemDLabel.pack()
-
     # Function for calculating Eorzea time and displaying on a label
     def EorzeaTimeDisplay(self):
         localEpoch = int(time.time() * 1000)  # local epoch time
@@ -168,6 +188,27 @@ class Win(tk.Tk):
         ctLabel = tk.Label(self, text="L.T.  " + current_time, bg='#443E3E', fg='white', font=('calibri', 20, 'bold'))
         ctLabel.grid(row=1, column=2)
         ctLabel.after(1000, self.LocalTimeDisplay)
+
+    def CooldownCountdown(self):
+        seconds = 2101
+
+        while seconds > 0:
+            minutes, secs = divmod(seconds, 60)
+            timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
+
+            cdLabel = tk.Label(self,
+                               text=timeFormat, bg='#858585')
+            cdLabel.grid(row=0, column=0)
+            seconds -= 1
+            time.sleep(1)
+
+            # cdLabel.after(1000, self.CooldownCountdown)
+
+    def FindEorzeaTime(self):
+        localEpoch = int(time.time() * 1000)  # local epoch time
+        epoch = localEpoch * 20.57142857142857  # local epoch times 3600/175 for eorzea time conversion
+
+        return epoch
 
 
 win = Win()
