@@ -19,6 +19,11 @@ class ItemNode(object):
         self.SpawnTime0 = 0
         self.SpawnTime1 = 0
 
+        # create another frame within main console
+        itemDisplayFrame = tk.Frame(self._frame, width=250, height=150, bd=1, bg='#858585', relief='groove')
+        itemDisplayFrame.grid(row=0, column=0, padx=10, pady=10)  # will need to configure in future to populate more
+        # itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
+
         # -------------------------------------
         # API
         # -------------------------------------
@@ -61,28 +66,28 @@ class ItemNode(object):
         itemImage = ImageTk.PhotoImage(resized)
 
         # LABEL
-        tk.Label(self._frame,
+        tk.Label(itemDisplayFrame,
                  text="Name: " + itemName,
                  relief='flat', justify='left', bg='#858585').grid(row=0, column=1, columnspan=2)
 
-        tk.Label(self._frame,
+        tk.Label(itemDisplayFrame,
                  text="Location: " + locationPlaceName + " ," + locationMapName,
                  relief='flat', justify='left', bg='#858585').grid(row=1, column=1, columnspan=2)
 
-        iconDisplay = tk.Label(self._frame, image=itemImage, bg="#202124")
+        iconDisplay = tk.Label(itemDisplayFrame, image=itemImage, bg="#202124")
         iconDisplay.grid(row=0, column=0, rowspan=2)
         iconDisplay.image = itemImage
 
         # labels for spawn time
-        tk.Label(self._frame,
+        tk.Label(itemDisplayFrame,
                  text="Spawn Time", bg='#858585').grid(row=2, column=0, columnspan=2, sticky=tk.W)
 
-        tk.Label(self._frame,
+        tk.Label(itemDisplayFrame,
                  text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1, bg='#858585').grid(row=3, column=0,
                                                                                     columnspan=2, sticky=tk.W)
 
         # labels for active/cooldown timers
-        tk.Label(self._frame,
+        tk.Label(itemDisplayFrame,
                  text="Active/ Cooldown", bg='#858585').grid(row=2, column=2, columnspan=2, sticky=tk.E)
 
     @property

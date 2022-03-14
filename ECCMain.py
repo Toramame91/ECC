@@ -77,11 +77,6 @@ class Win(tk.Tk):
         sideBarFrame.grid_propagate(0)
         timerFrame.grid_propagate(0)
 
-        # create another frame within main console
-        itemDisplayFrame = tk.Frame(mainConsoleFrame, width=250, height=150, bd=1, bg='#858585', relief='groove')
-        itemDisplayFrame.grid(row=0, column=0, padx=10, pady=10)  # will need to configure in future to populate more
-        # itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
-
         # -------------------------------------
         # Displays  * All display function calls will fall under here
         # -------------------------------------
@@ -94,7 +89,7 @@ class Win(tk.Tk):
         # -- display for Local Time
         clockDisplay.LocalTimeDisplay()
         # call item node class
-        ItemNode(itemDisplayFrame, 856, 34043)  # manually added numbers for testing
+        ItemNode(mainConsoleFrame, 856, 34043)  # manually added numbers for testing
 
     # --------------------------------------
     # Functions
