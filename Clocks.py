@@ -1,5 +1,5 @@
-import tkinter as tk
 import time
+import tkinter as tk
 from datetime import datetime
 
 
@@ -24,6 +24,14 @@ class EorzeanClock(object):
     def getSecond(self):
         return self._second
 
+    @property
+    def getEorzeaHour(self):
+        return self._eorzeanHour
+
+    @property
+    def getEorzeaMinute(self):
+        return self._eorzeanMinute
+
     # Function for calculating Eorzea time and displaying on a label
     def EorzeaTimeDisplay(self):
         localEpoch = int(time.time() * 1000)  # local epoch time
@@ -34,7 +42,8 @@ class EorzeanClock(object):
         self._eorzeanMinute = f'{minutes:02d}'  # format minutes to display 2 digits
         display = str(self._eorzeanHour) + ":" + str(self._eorzeanMinute)  # combine hours and minutes into one string
         # label for time placement
-        timerLbl = tk.Label(self._frame, text="E.T.  " + display, bg='#443E3E', fg='white', font=('calibri', 20, 'bold'))
+        timerLbl = tk.Label(self._frame, text="E.T.  " + display, bg='#443E3E', fg='white',
+                            font=('calibri', 20, 'bold'))
         timerLbl.grid(row=1, column=0, columnspan=2, sticky=tk.NSEW)
         timerLbl.after(2550, self.EorzeaTimeDisplay)
 
@@ -53,3 +62,13 @@ class EorzeanClock(object):
         epoch = localEpoch * 20.57142857142857  # local epoch times 3600/175 for eorzea time conversion
 
         return epoch
+
+    def ConvertEorzea(self):
+        localEpoch = int(time.time() * 1000)  # local epoch time
+        epoch = localEpoch * 20.57142857142857  # local epoch times 3600/175 for eorzea time conversion
+        minute = int((epoch / (1000 * 60)) % 60)  # ticks from epoch calculated into minutes
+        hours = int((epoch / (1000 * 60 * 60)) % 24)  # ticks from epoch calculated into hours
+        hour, minutes = divmod(hours, 60)
+        timeFormat = '{:02d}{:02d}'.format(hours, minute)
+
+        return int(timeFormat)

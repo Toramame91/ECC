@@ -2,8 +2,9 @@ import tkinter as tk
 import json
 import requests
 import io
-from PIL import ImageTk, Image
 
+from PIL import ImageTk, Image
+from Clocks import *
 from urllib.request import urlopen
 
 
@@ -11,17 +12,19 @@ class ItemNode(object):
 
     def __init__(self, frame, itemID, gpID):
         self._frame = frame
+        self._nodeFrame = None
         self._itemID = itemID
         self._GatheringPointID = gpID
-        self.hour = 0
-        self.min = 0
         self.sec = 0
         self.SpawnTime0 = 0
         self.SpawnTime1 = 0
+        self.activeTimer = 2
+        self.active = False
 
         # create another frame within main console
         itemDisplayFrame = tk.Frame(self._frame, width=250, height=150, bd=1, bg='#858585', relief='groove')
         itemDisplayFrame.grid(row=0, column=0, padx=10, pady=10)  # will need to configure in future to populate more
+        self._nodeFrame = itemDisplayFrame
         # itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
 
         # -------------------------------------
@@ -48,10 +51,10 @@ class ItemNode(object):
         itemName = parse_GatherPointBaseData['Item1']['Item']['Name']
         locationMapName = parse_gatheringPointData['TerritoryType']['PlaceName']['Name']
         locationPlaceName = parse_gatheringPointData['PlaceName']['Name']
-        nodeSpawnTime0 = parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime0']
-        nodeSpawnTime1 = parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime1']
-        fNodeSpawnTime0 = f'{nodeSpawnTime0:04d}'
-        fNodeSpawnTime1 = f'{nodeSpawnTime1:04d}'
+        self.SpawnTime0 = int(parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime0'])
+        self.SpawnTime1 = int(parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime1'])
+        fNodeSpawnTime0 = f'{self.SpawnTime0:04d}'
+        fNodeSpawnTime1 = f'{self.SpawnTime1:04d}'
         iconURLParse = parse_GatherPointBaseData['Item1']['Item']['IconHD']
         # IMAGE PARSE
         # open url to read into memory stream
@@ -90,6 +93,14 @@ class ItemNode(object):
         tk.Label(itemDisplayFrame,
                  text="Active/ Cooldown", bg='#858585').grid(row=2, column=2, columnspan=2, sticky=tk.E)
 
+        currentEorzeaTime = EorzeanClock.ConvertEorzea(self)
+        self.sec = int(self.FindNextSpawn(currentEorzeaTime) / 100) * 175
+
+        if self.active is False:
+            self.CooldownCountdown()
+        elif self.active is True:
+            self.ActiveCountdown()
+
     @property
     def getItemID(self):
         return self._itemID
@@ -98,15 +109,43 @@ class ItemNode(object):
     def getGatheringPointID(self):
         return self._GatheringPointID
 
-    # def CooldownCountdown(self):
-    #     seconds = 2101
-    #
-    #     while seconds > 0:
-    #         minutes, secs = divmod(seconds, 60)
-    #         timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
-    #
-    #         cdLabel = tk.Label(self.frame,
-    #                                text=timeFormat, bg='#858585')
-    #         cdLabel.grid(row=0, column=0)
-    #         seconds -= 1
-    #         time.sleep(1)
+    def FindNextSpawn(self, currentTime):
+        if self.SpawnTime0 < currentTime < self.SpawnTime1:
+            result = abs(self.SpawnTime1 - currentTime)
+        elif currentTime > self.SpawnTime1:
+            result = abs(2400 - currentTime)
+            result = abs(self.SpawnTime0 + result)
+        elif currentTime < self.SpawnTime0:
+            result = abs(self.SpawnTime0 - currentTime)
+
+        return result
+
+    def CooldownCountdown(self):
+        minutes, secs = divmod(self.sec, 60)
+        timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
+        cdLabel = tk.Label(self._nodeFrame, text=timeFormat, bg='#858585', fg='red')
+        cdLabel.grid(row=3, column=2)
+        self.sec -= 1
+        if self.sec <= -1:
+            self.active = True
+            self.sec = self.activeTimer * 175
+            self.ActiveCountdown()
+
+        cdLabel.after(1000, self.CooldownCountdown)
+
+    def ActiveCountdown(self):
+        minutes, secs = divmod(self.sec, 60)
+        timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
+        actLabel = tk.Label(self._nodeFrame, text=timeFormat, bg='#858585', fg='green')
+        actLabel.grid(row=3, column=2)
+        self.sec -= 1
+        if self.sec <= -1:
+            self.active = False
+            self.sec = int(self.FindNextSpawn(EorzeanClock.ConvertEorzea(self)) / 100) * 175
+            self.CooldownCountdown()
+
+        actLabel.after(1000, self.ActiveCountdown)
+
+
+
+
