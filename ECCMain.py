@@ -80,7 +80,8 @@ class Win(tk.Tk):
         # -- display for Local Time
         clockDisplay.LocalTimeDisplay()
         # call item node class
-        ItemNode(mainConsoleFrame, 856, 34043)  # manually added numbers for testing
+        for x in range(10):
+            ItemNode(mainConsoleFrame, 856, 34043, x)  # manually added numbers for testing
 
     # --------------------------------------
     # Functions

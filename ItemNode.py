@@ -10,11 +10,12 @@ from urllib.request import urlopen
 
 class ItemNode(object):
 
-    def __init__(self, frame, itemID, gpID):
+    def __init__(self, frame, itemID, gpID, nodeNum):
         self._frame = frame
         self._nodeFrame = None
         self._itemID = itemID
         self._GatheringPointID = gpID
+        self.nodeNumber = nodeNum
         self.sec = 0
         self.SpawnTime0 = 0
         self.SpawnTime1 = 0
@@ -23,7 +24,10 @@ class ItemNode(object):
 
         # create another frame within main console
         itemDisplayFrame = tk.Frame(self._frame, width=250, height=150, bd=1, bg='#858585', relief='groove')
-        itemDisplayFrame.grid(row=0, column=0, padx=10, pady=10)  # will need to configure in future to populate more
+        xGrid = int(self.nodeNumber / 4)
+        if self.nodeNumber > 3:
+            self.nodeNumber = int(self.nodeNumber % 4)
+        itemDisplayFrame.grid(row=xGrid, column=self.nodeNumber, padx=10, pady=10)  # will need to configure in future to populate more
         self._nodeFrame = itemDisplayFrame
         # itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
 
