@@ -1,5 +1,5 @@
-from Clocks import *
 from ItemNode import *
+from NodeList import NodeLists
 
 
 def navBarDisplay(_frame):
@@ -20,7 +20,7 @@ class Win(tk.Tk):
     def __init__(self):
         # basic window configurations
         super().__init__()
-        self.item = None
+        self.nodeCount = 0
         self.columnconfigure(0, weight=1)
         self.overrideredirect(True)
         self.grid_propagate(False)
@@ -80,8 +80,10 @@ class Win(tk.Tk):
         # -- display for Local Time
         clockDisplay.LocalTimeDisplay()
         # call item node class
-        for x in range(10):
-            ItemNode(mainConsoleFrame, 856, 34043, x)  # manually added numbers for testing
+        ew = NodeLists()
+        for ewItem, ewGatherPoint in ew.EndwalkerDictItems():
+            ItemNode(mainConsoleFrame, ewItem, ewGatherPoint, self.nodeCount)
+            self.nodeCount += 1
 
     # --------------------------------------
     # Functions

@@ -27,7 +27,7 @@ class ItemNode(object):
         xGrid = int(self.nodeNumber / 4)
         if self.nodeNumber > 3:
             self.nodeNumber = int(self.nodeNumber % 4)
-        itemDisplayFrame.grid(row=xGrid, column=self.nodeNumber, padx=10, pady=10)  # will need to configure in future to populate more
+        itemDisplayFrame.grid(row=xGrid, column=self.nodeNumber, padx=10, pady=10)
         self._nodeFrame = itemDisplayFrame
         # itemDisplayFrame.grid_propagate(0)  # disable resizing from widgets
 
@@ -38,7 +38,7 @@ class ItemNode(object):
         # API REQUESTS ************************
 
         # REQUESTS FOR GATHERING ITEM DATA
-        gatheringInfo_API = requests.get(f'https://xivapi.com/GatheringPointBase/{self._itemID}?columns=Item1.Item')
+        gatheringInfo_API = requests.get(f'https://xivapi.com/GatheringPointBase/{self._itemID}')
         gatheringPointInfo_API = requests.get(
             f'https://xivapi.com/GatheringPoint/{self._GatheringPointID}?columns=GatheringPointTransient,PlaceName,TerritoryType.PlaceName')
 
@@ -87,7 +87,7 @@ class ItemNode(object):
 
         # labels for spawn time
         tk.Label(itemDisplayFrame,
-                 text="Spawn Time", bg='#858585').grid(row=2, column=0, columnspan=2, sticky=tk.W)
+                 text="Spawn Time:", bg='#858585').grid(row=2, column=0, columnspan=2, sticky=tk.W)
 
         tk.Label(itemDisplayFrame,
                  text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1, bg='#858585').grid(row=3, column=0,
@@ -95,7 +95,7 @@ class ItemNode(object):
 
         # labels for active/cooldown timers
         tk.Label(itemDisplayFrame,
-                 text="Active/ Cooldown", bg='#858585').grid(row=2, column=2, columnspan=2, sticky=tk.E)
+                 text="Active/ Cooldown:", bg='#858585').grid(row=2, column=2, columnspan=2, sticky=tk.E)
 
         currentEorzeaTime = EorzeanClock.ConvertEorzea(self)
         self.sec = int(self.FindNextSpawn(currentEorzeaTime) / 100) * 175
