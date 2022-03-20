@@ -1,17 +1,9 @@
-import requests
-import ItemNode
-import time
-
-
 class NodeLists:
     def __init__(self):
-        self._ewDictLegendary = {856: 34043, 858: 34045}
+        self._ewNodeListLegendary = [34043, 34044, 34045, 33967, 33968, 33969]
 
-    def GetEndwalkerDict(self):
-        return self._ewDictLegendary.get()
+    def GetEndwalkerListLegendary(self):
+        return self._ewNodeListLegendary
 
-    def EndwalkerDictItems(self):
-        return self._ewDictLegendary.items()
-
-    def EndwalkerDictCount(self):
-        return len(self._ewDictLegendary)
+    def EndwalkerListLegendaryCount(self):
+        return len(self._ewNodeListLegendary)

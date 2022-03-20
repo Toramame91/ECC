@@ -68,7 +68,6 @@ class EorzeanClock(object):
         epoch = localEpoch * 20.57142857142857  # local epoch times 3600/175 for eorzea time conversion
         minute = int((epoch / (1000 * 60)) % 60)  # ticks from epoch calculated into minutes
         hours = int((epoch / (1000 * 60 * 60)) % 24)  # ticks from epoch calculated into hours
-        hour, minutes = divmod(hours, 60)
         timeFormat = '{:02d}{:02d}'.format(hours, minute)
 
         return int(timeFormat)

@@ -27,6 +27,7 @@ class Win(tk.Tk):
         self.wm_geometry("1280x800")  # window size
         self.configure(background="#858585")  # window background color
         self.minsize(400, 400)  # minimum size for window
+        self.cache = None
 
         # set starting position of window to be 0,0
         self.x = 0
@@ -61,7 +62,7 @@ class Win(tk.Tk):
         timerFrame.columnconfigure(0, weight=2)
         timerFrame.columnconfigure(1, weight=1)
         timerFrame.columnconfigure(2, weight=1)
-        timerFrame.columnconfigure(3, weight=2)
+        timerFrame.columnconfigure(3, weight=1)
 
         # disable resizing of frames to widgets
         mainConsoleFrame.grid_propagate(0)
@@ -81,8 +82,8 @@ class Win(tk.Tk):
         clockDisplay.LocalTimeDisplay()
         # call item node class
         ew = NodeLists()
-        for ewItem, ewGatherPoint in ew.EndwalkerDictItems():
-            ItemNode(mainConsoleFrame, ewItem, ewGatherPoint, self.nodeCount)
+        for ewGatherPoint in ew.GetEndwalkerListLegendary():
+            ItemNode(mainConsoleFrame, ewGatherPoint, self.nodeCount)
             self.nodeCount += 1
 
     # --------------------------------------
