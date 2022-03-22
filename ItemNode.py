@@ -16,12 +16,14 @@ class ItemNode(object):
         self._nodeFrame = None
         self._GatheringPointID = gpID
         self.nodeNumber = nodeNum
-        self.sec = 0
+        self._realWorldSeconds = 0
         self.font = ('helvetica', 10)
         self.SpawnTime0 = 0
         self.SpawnTime1 = 0
         self.activeTimer = 160
         self.active = False
+        self.cdLabel = None
+        self.SpawnLabelText = tk.StringVar()
 
         # create another frame within main console
         itemDisplayFrame = tk.Frame(self._frame, width=250, height=175, bd=1, bg='#858585', relief='groove')
@@ -105,7 +107,7 @@ class ItemNode(object):
         # labels for active/cooldown timers
 
         currentEorzeaTime = EorzeanClock.ConvertEorzea(self)
-        self.sec = self.FindRealSeconds(self.FindNextSpawn(currentEorzeaTime))
+        self._realWorldSeconds = self.FindRealSeconds(self.FindNextSpawn(currentEorzeaTime))
         self.IsActive(currentEorzeaTime)
         if not self.active:
             self.CooldownCountdown()
@@ -124,12 +126,12 @@ class ItemNode(object):
         return realSeconds
 
     def IsActive(self, currentTime):
-        if self.SpawnTime0 < currentTime < (self.SpawnTime0 + 200):
+        if self.SpawnTime0 < currentTime < (self.SpawnTime0 + 160):
             self.active = True
-            self.sec = self.FindRealSeconds(((self.SpawnTime0 + 160) - currentTime))
-        elif self.SpawnTime1 < currentTime < (self.SpawnTime1 + 200):
+            self._realWorldSeconds = self.FindRealSeconds(self.FindRemainingActiveTime(EorzeanClock.ConvertEorzea(self)))
+        elif self.SpawnTime1 < currentTime < (self.SpawnTime1 + 160):
             self.active = True
-            self.sec = self.FindRealSeconds(((self.SpawnTime1 + 160) - currentTime))
+            self._realWorldSeconds = self.FindRealSeconds(self.FindRemainingActiveTime(EorzeanClock.ConvertEorzea(self)))
         else:
             self.active = False
 
@@ -139,49 +141,49 @@ class ItemNode(object):
         if self.SpawnTime0 < currentTime < self.SpawnTime1:
             result = abs(spawn1 - currentTime)
         elif 2400 > currentTime > self.SpawnTime1:
-            result = abs(2400 - currentTime)
+            result = abs(2360 - currentTime)
             result = spawn0 + result
         elif currentTime < self.SpawnTime0:
             result = abs(spawn0 - currentTime)
 
         return result
 
-    def FindNextSpawnT(self, currentTime):
-        nextTime = None
-        if currentTime > self.SpawnTime0:
-            nextTime = self.SpawnTime1
-        if currentTime > self.SpawnTime1:
-            nextTime = self.SpawnTime0
-        if nextTime == 0:
-            nextTime = 2400
-        result = nextTime - currentTime
-        print(result)
+    def FindRemainingActiveTime(self, currentTime):
+        if self.SpawnTime0 <= currentTime < (self.SpawnTime0 + 160):
+            result = abs((self.SpawnTime0 + 160) - currentTime)
+        elif self.SpawnTime1 <= currentTime < (self.SpawnTime1 + 160):
+            result = abs((self.SpawnTime1 + 160) - currentTime)
         return result
 
     def CooldownCountdown(self):
-        minutes, secs = divmod(self.sec, 60)
+        minutes, secs = divmod(self._realWorldSeconds, 60)
         timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
-        cdLabel = tk.Label(self._nodeFrame, text="spawns in: " + timeFormat, bg='#858585', fg='red', justify='left',
-                           font=self.font)
-        cdLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
-        self.sec -= 1
-        if self.sec < 1:
+        self.SpawnLabelText.set("Spawns In: " + timeFormat)
+        self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='red', justify='left',
+                                font=self.font)
+        self.cdLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
+        self._realWorldSeconds -= 1
+        if self._realWorldSeconds < 1:
             self.active = True
-            self.sec = 350
+            time.sleep(1)
+            self._realWorldSeconds = 350
             self.ActiveCountdown()
+        else:
 
-        cdLabel.after(1000, self.CooldownCountdown)
+            self.cdLabel.after(1000, self.CooldownCountdown)
 
     def ActiveCountdown(self):
-        minutes, secs = divmod(self.sec, 60)
+        minutes, secs = divmod(self._realWorldSeconds, 60)
         timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
-        actLabel = tk.Label(self._nodeFrame, text="active: " + timeFormat, bg='#858585', fg='green', justify='left',
-                            font=self.font)
-        actLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
-        self.sec -= 1
-        if self.sec < 1:
+        self.SpawnLabelText.set("Spawn Active: " + timeFormat)
+        self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='green', justify='left',
+                                font=self.font)
+        self.cdLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
+        self._realWorldSeconds -= 1
+        if self._realWorldSeconds < 1:
             self.active = False
-            self.sec = 1750
+            time.sleep(1)
+            self._realWorldSeconds = 1750
             self.CooldownCountdown()
-
-        actLabel.after(1000, self.ActiveCountdown)
+        else:
+            self.cdLabel.after(1000, self.ActiveCountdown)
