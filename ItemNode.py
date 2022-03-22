@@ -95,7 +95,7 @@ class ItemNode(object):
         iconDisplay2.grid(row=1, column=0, sticky=tk.W)
         iconDisplay2.image = itemImage
 
-        # labels for spawn time
+        # labels for spawn currentTime
         tk.Label(itemDisplayFrame,
                  text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1 + " Eorzean Time", bg='#858585', font=self.font).grid(
             row=3, column=0,
@@ -105,7 +105,7 @@ class ItemNode(object):
         # labels for active/cooldown timers
 
         currentEorzeaTime = EorzeanClock.ConvertEorzea(self)
-        self.sec = int(((self.FindNextSpawn(currentEorzeaTime) / 100) * 60) * 2.9167)
+        self.sec = self.FindRealSeconds(self.FindNextSpawn(currentEorzeaTime))
         self.IsActive(currentEorzeaTime)
         if not self.active:
             self.CooldownCountdown()
@@ -116,22 +116,26 @@ class ItemNode(object):
     def getGatheringPointID(self):
         return self._GatheringPointID
 
+    def FindRealSeconds(self, currentTime):
+        hours, minutes = divmod(currentTime, 100)
+        convertHours = hours * 175
+        convertSeconds = minutes * (2 + (11 / 12))
+        realSeconds = int(convertHours) + int(convertSeconds)
+        return realSeconds
+
     def IsActive(self, currentTime):
         if self.SpawnTime0 < currentTime < (self.SpawnTime0 + 200):
             self.active = True
-            self.sec = int(((self.SpawnTime0 + 200) - currentTime) / 100 * 175)
-            print(self.sec)
+            self.sec = self.FindRealSeconds(((self.SpawnTime0 + 160) - currentTime))
         elif self.SpawnTime1 < currentTime < (self.SpawnTime1 + 200):
             self.active = True
-            self.sec = int(((self.SpawnTime1 + 200) - currentTime) / 100 * 175)
-            print(self.sec)
+            self.sec = self.FindRealSeconds(((self.SpawnTime1 + 160) - currentTime))
         else:
             self.active = False
 
-
     def FindNextSpawn(self, currentTime):
-        spawn0 = self.SpawnTime0
-        spawn1 = self.SpawnTime1
+        spawn0 = self.SpawnTime0 - 40
+        spawn1 = self.SpawnTime1 - 40
         if self.SpawnTime0 < currentTime < self.SpawnTime1:
             result = abs(spawn1 - currentTime)
         elif 2400 > currentTime > self.SpawnTime1:
