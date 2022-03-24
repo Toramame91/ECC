@@ -6,7 +6,7 @@ import requests_cache
 
 from PIL import ImageTk, Image
 from Clocks import *
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 
 class ItemNode(object):
@@ -17,13 +17,14 @@ class ItemNode(object):
         self._GatheringPointID = gpID
         self.nodeNumber = nodeNum
         self._realWorldSeconds = 0
-        self.font = ('helvetica', 10)
+        self._labelFont = ('helvetica', 10)
         self.SpawnTime0 = 0
         self.SpawnTime1 = 0
         self.activeTimer = 160
         self.active = False
         self.cdLabel = None
         self.SpawnLabelText = tk.StringVar()
+        self.API_URL = "https://xivapi.com"
 
         # create another frame within main console
         itemDisplayFrame = tk.Frame(self._frame, width=250, height=175, bd=1, bg='#858585', relief='groove')
@@ -42,7 +43,7 @@ class ItemNode(object):
 
         # REQUESTS FOR GATHERING ITEM DATA
         requests_cache.install_cache('testCache', backend='sqLite')
-        gatherDataCache = requests.get(f'https://xivapi.com/GatheringPoint/{self._GatheringPointID}')
+        gatherDataCache = requests.get(f'https://xivapi.com/GatheringPoint/{self._GatheringPointID}?private_key=45484ebc973f443fae7a525fc0557ac832dacf8e079c47e195717cf0f6df32dd')
 
         # JSON CREATION ***********************
 
@@ -62,44 +63,51 @@ class ItemNode(object):
             parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime1'])
         fNodeSpawnTime0 = f'{self.SpawnTime0:04d}'
         fNodeSpawnTime1 = f'{self.SpawnTime1:04d}'
-        # iconURLParse = parse_GatherPointBaseData['Item1']['Item']['IconHD']
+        iconURLParse0 = self.API_URL + parse_gatheringPointData['GatheringPointBase']['Item0']['Item']['Icon']
+        iconURLParse1 = self.API_URL + parse_gatheringPointData['GatheringPointBase']['Item1']['Item']['Icon']
+        req0 = Request(iconURLParse0, headers={'User-Agent': 'Mozilla/5.0'})
+        req1 = Request(iconURLParse1, headers={'User-Agent': 'Mozilla/5.0'})
         # IMAGE PARSE
         # open url to read into memory stream
-        IconURL = urlopen(
-            'https://static.wikia.nocookie.net/ffxiv_gamepedia/images/2/29/Elm_Lumber.png/revision/latest/scale-to'
-            '-width-down/128?cb=20170114190928')
+        iconURL0 = urlopen(req0)
+        iconURL1 = urlopen(req1)
+
         # create image file object
-        avatarPic = io.BytesIO(IconURL.read())
+        itemIcon0read = io.BytesIO(iconURL0.read())
+        itemIcon1read = io.BytesIO(iconURL1.read())
         # use PIL to open jpeg file then convert to image Tkinter can use
-        pil_img = Image.open(avatarPic)
-        resized = pil_img.resize((25, 25), Image.ANTIALIAS)
-        itemImage = ImageTk.PhotoImage(resized)
+        pil_img0 = Image.open(itemIcon0read)
+        pil_img1 = Image.open(itemIcon1read)
+        resizedIcon0 = pil_img0.resize((25, 25), Image.ANTIALIAS)
+        resizedIcon1 = pil_img1.resize((25, 25), Image.ANTIALIAS)
+        itemIcon0 = ImageTk.PhotoImage(resizedIcon0)
+        itemIcon1 = ImageTk.PhotoImage(resizedIcon1)
 
         # LABEL
         tk.Label(itemDisplayFrame,
                  text=itemName0,
-                 relief='flat', justify='left', bg='#858585', font=self.font).grid(row=0, column=1, sticky=tk.W)
+                 relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=0, column=1, sticky=tk.W)
 
         tk.Label(itemDisplayFrame,
                  text=itemName1,
-                 relief='flat', justify='left', bg='#858585', font=self.font).grid(row=1, column=1, sticky=tk.W)
+                 relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=1, column=1, sticky=tk.W)
 
         tk.Label(itemDisplayFrame,
                  text=locationPlaceName + " ," + locationMapName,
-                 relief='flat', justify='left', bg='#858585', font=self.font).grid(row=2, column=0, columnspan=4,
-                                                                                   sticky=tk.W)
+                 relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=2, column=0, columnspan=4,
+                                                                                         sticky=tk.W)
 
-        iconDisplay1 = tk.Label(itemDisplayFrame, image=itemImage, bg="#858585")
-        iconDisplay1.grid(row=0, column=0, sticky=tk.W)
-        iconDisplay1.image = itemImage
+        iconDisplay0 = tk.Label(itemDisplayFrame, image=itemIcon0, bg="#858585")
+        iconDisplay0.grid(row=0, column=0, sticky=tk.W)
+        iconDisplay0.image = itemIcon0
 
-        iconDisplay2 = tk.Label(itemDisplayFrame, image=itemImage, bg="#858585")
-        iconDisplay2.grid(row=1, column=0, sticky=tk.W)
-        iconDisplay2.image = itemImage
+        iconDisplay1 = tk.Label(itemDisplayFrame, image=itemIcon1, bg="#858585")
+        iconDisplay1.grid(row=1, column=0, sticky=tk.W)
+        iconDisplay1.image = itemIcon1
 
         # labels for spawn currentTime
         tk.Label(itemDisplayFrame,
-                 text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1 + " Eorzean Time", bg='#858585', font=self.font).grid(
+                 text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1 + " Eorzean Time", bg='#858585', font=self._labelFont).grid(
             row=3, column=0,
             columnspan=2,
             sticky=tk.W)
@@ -160,7 +168,7 @@ class ItemNode(object):
         timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
         self.SpawnLabelText.set("Spawns In: " + timeFormat)
         self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='red', justify='left',
-                                font=self.font)
+                                font=self._labelFont)
         self.cdLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
         self._realWorldSeconds -= 1
         if self._realWorldSeconds < 1:
@@ -177,7 +185,7 @@ class ItemNode(object):
         timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
         self.SpawnLabelText.set("Spawn Active: " + timeFormat)
         self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='green', justify='left',
-                                font=self.font)
+                                font=self._labelFont)
         self.cdLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
         self._realWorldSeconds -= 1
         if self._realWorldSeconds < 1:
