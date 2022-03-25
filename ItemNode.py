@@ -104,8 +104,7 @@ class ItemNode(object):
 
         tk.Label(itemDisplayFrame,
                  text=locationPlaceName + " ," + locationMapName,
-                 relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=2, column=0, columnspan=4,
-                                                                                         sticky=tk.W)
+                 relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=2, column=0, columnspan=4, sticky=tk.W)
 
         # Icon Displays
         iconDisplay0 = tk.Label(itemDisplayFrame, image=itemIcon0, bg="#858585")

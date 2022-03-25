@@ -1,3 +1,5 @@
+from tkinter import Button
+
 from ItemNode import *
 from NodeList import NodeLists
 
@@ -29,6 +31,8 @@ class Win(tk.Tk):
         self.minsize(400, 400)  # minimum size for window
         self.cache = None
 
+        self.mainConsoleFrame = None
+
         # set starting position of window to be 0,0
         self.x = 0
         self.y = 0
@@ -49,12 +53,12 @@ class Win(tk.Tk):
         # create and configure frames for navigation bar, main console, timers
         # -------------------------------------
         sideBarFrame = tk.Frame(self, height=800, width=350, bg='#443E3E', relief='raised', bd=1)
-        mainConsoleFrame = tk.Frame(self, height=700, width=1100, bg='#443E3E', relief='groove', bd=1)
+        self.mainConsoleFrame = tk.Frame(self, height=700, width=1100, bg='#443E3E', relief='groove', bd=1)
         timerFrame = tk.Frame(self, height=100, width=1100, bg='#443E3E', relief='groove', bd=1)
 
         # configure grid layout  for each frame      
         sideBarFrame.grid(row=1, column=0, rowspan=4, sticky='w')
-        mainConsoleFrame.grid(row=2, column=1, columnspan=4, sticky=tk.NW)
+        self.mainConsoleFrame.grid(row=2, column=1, columnspan=4, sticky=tk.NW)
         timerFrame.grid(row=1, column=1, columnspan=4, sticky=tk.N)
         timerFrame.rowconfigure(0, weight=1)
         timerFrame.rowconfigure(1, weight=2)
@@ -65,7 +69,7 @@ class Win(tk.Tk):
         timerFrame.columnconfigure(3, weight=1)
 
         # disable resizing of frames to widgets
-        mainConsoleFrame.grid_propagate(0)
+        self.mainConsoleFrame.grid_propagate(0)
         sideBarFrame.grid_propagate(0)
         timerFrame.grid_propagate(0)
 
@@ -81,10 +85,20 @@ class Win(tk.Tk):
         # -- display for Local Time
         clockDisplay.LocalTimeDisplay()
         # call item node class
-        ew = NodeLists()
-        for ewGatherPoint in ew.GetEndwalkerListLegendary():
-            ItemNode(mainConsoleFrame, ewGatherPoint, self.nodeCount)
-            self.nodeCount += 1
+        nodes = NodeLists()
+
+        # -------------------------------------
+        # BUTTONS
+        # -------------------------------------
+        LegendaryNodeButton = Button(sideBarFrame,
+                                     text="Legendary",
+                                     font=('Ubuntu', 12),
+                                     fg='white',
+                                     bg='#443E3E',
+                                     relief='solid',
+                                     borderwidth='2',
+                                     command=self.SwapDisplayLegendaryNodes(nodes))
+        LegendaryNodeButton.grid(row=2, column=0, padx=20, pady=20)
 
     # --------------------------------------
     # Functions
@@ -100,6 +114,23 @@ class Win(tk.Tk):
     def button_press(self, event):
         self.x = event.x
         self.y = event.y
+
+    def SwapDisplayLegendaryNodes(self, nodelist):
+        self.ClearMainConsoleFrame()
+
+        for ewGatherPoint in nodelist.GetEndwalkerListLegendary():
+            ItemNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
+            self.nodeCount += 1
+
+    def SwapDisplayEphemeralNodes(self, nodelist):
+        self.ClearMainConsoleFrame()
+
+        ewEphemeral = NodeLists()
+
+    def ClearMainConsoleFrame(self):
+        for widgets in self.mainConsoleFrame.winfo_children():
+            widgets.destroy()
+            self.nodeCount -= 1
 
 
 win = Win()
