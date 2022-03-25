@@ -27,7 +27,7 @@ class ItemNode(object):
         self.API_URL = "https://xivapi.com"
 
         # create another frame within main console
-        itemDisplayFrame = tk.Frame(self._frame, width=250, height=175, bd=1, bg='#858585', relief='groove')
+        itemDisplayFrame = tk.Frame(self._frame, width=250, height=160, bd=1, bg='#858585', relief='groove')
         xGrid = int(self.nodeNumber / 4)
         if self.nodeNumber > 3:
             self.nodeNumber = int(self.nodeNumber % 4)
@@ -43,7 +43,8 @@ class ItemNode(object):
 
         # REQUESTS FOR GATHERING ITEM DATA
         requests_cache.install_cache('testCache', backend='sqLite')
-        gatherDataCache = requests.get(f'https://xivapi.com/GatheringPoint/{self._GatheringPointID}?private_key=45484ebc973f443fae7a525fc0557ac832dacf8e079c47e195717cf0f6df32dd')
+        gatherDataCache = requests.get(
+            f'https://xivapi.com/GatheringPoint/{self._GatheringPointID}?private_key=45484ebc973f443fae7a525fc0557ac832dacf8e079c47e195717cf0f6df32dd')
 
         # JSON CREATION ***********************
 
@@ -65,23 +66,32 @@ class ItemNode(object):
         fNodeSpawnTime1 = f'{self.SpawnTime1:04d}'
         iconURLParse0 = self.API_URL + parse_gatheringPointData['GatheringPointBase']['Item0']['Item']['Icon']
         iconURLParse1 = self.API_URL + parse_gatheringPointData['GatheringPointBase']['Item1']['Item']['Icon']
+        iconURLParseGtype = self.API_URL + parse_gatheringPointData['GatheringPointBase']['GatheringType']['IconMain']
         req0 = Request(iconURLParse0, headers={'User-Agent': 'Mozilla/5.0'})
         req1 = Request(iconURLParse1, headers={'User-Agent': 'Mozilla/5.0'})
+        reqGType = Request(iconURLParseGtype, headers={'User-Agent': 'Mozilla/5.0'})
         # IMAGE PARSE
         # open url to read into memory stream
         iconURL0 = urlopen(req0)
         iconURL1 = urlopen(req1)
+        iconURLGType = urlopen(reqGType)
 
         # create image file object
         itemIcon0read = io.BytesIO(iconURL0.read())
         itemIcon1read = io.BytesIO(iconURL1.read())
+        itemGatheringTypeRead = io.BytesIO(iconURLGType.read())
         # use PIL to open jpeg file then convert to image Tkinter can use
         pil_img0 = Image.open(itemIcon0read)
         pil_img1 = Image.open(itemIcon1read)
+        pil_imgGType = Image.open(itemGatheringTypeRead)
+
         resizedIcon0 = pil_img0.resize((25, 25), Image.ANTIALIAS)
         resizedIcon1 = pil_img1.resize((25, 25), Image.ANTIALIAS)
+        resizedIconGType = pil_imgGType.resize((25, 25), Image.ANTIALIAS)
+
         itemIcon0 = ImageTk.PhotoImage(resizedIcon0)
         itemIcon1 = ImageTk.PhotoImage(resizedIcon1)
+        gatheringTypeIcon = ImageTk.PhotoImage(resizedIconGType)
 
         # LABEL
         tk.Label(itemDisplayFrame,
@@ -97,6 +107,7 @@ class ItemNode(object):
                  relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=2, column=0, columnspan=4,
                                                                                          sticky=tk.W)
 
+        # Icon Displays
         iconDisplay0 = tk.Label(itemDisplayFrame, image=itemIcon0, bg="#858585")
         iconDisplay0.grid(row=0, column=0, sticky=tk.W)
         iconDisplay0.image = itemIcon0
@@ -105,9 +116,14 @@ class ItemNode(object):
         iconDisplay1.grid(row=1, column=0, sticky=tk.W)
         iconDisplay1.image = itemIcon1
 
+        gatheringIconDisplay = tk.Label(itemDisplayFrame, image=gatheringTypeIcon, bg="#858585")
+        gatheringIconDisplay.grid(row=5, column=0, sticky=tk.W)
+        gatheringIconDisplay.image = gatheringTypeIcon
+
         # labels for spawn currentTime
         tk.Label(itemDisplayFrame,
-                 text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1 + " Eorzean Time", bg='#858585', font=self._labelFont).grid(
+                 text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1 + " Eorzean Time", bg='#858585',
+                 font=self._labelFont).grid(
             row=3, column=0,
             columnspan=2,
             sticky=tk.W)
@@ -136,10 +152,12 @@ class ItemNode(object):
     def IsActive(self, currentTime):
         if self.SpawnTime0 < currentTime < (self.SpawnTime0 + 160):
             self.active = True
-            self._realWorldSeconds = self.FindRealSeconds(self.FindRemainingActiveTime(EorzeanClock.ConvertEorzea(self)))
+            self._realWorldSeconds = self.FindRealSeconds(
+                self.FindRemainingActiveTime(EorzeanClock.ConvertEorzea(self)))
         elif self.SpawnTime1 < currentTime < (self.SpawnTime1 + 160):
             self.active = True
-            self._realWorldSeconds = self.FindRealSeconds(self.FindRemainingActiveTime(EorzeanClock.ConvertEorzea(self)))
+            self._realWorldSeconds = self.FindRealSeconds(
+                self.FindRemainingActiveTime(EorzeanClock.ConvertEorzea(self)))
         else:
             self.active = False
 
@@ -167,7 +185,8 @@ class ItemNode(object):
         minutes, secs = divmod(self._realWorldSeconds, 60)
         timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
         self.SpawnLabelText.set("Spawns In: " + timeFormat)
-        self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='red', justify='left',
+        self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='red',
+                                justify='left',
                                 font=self._labelFont)
         self.cdLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
         self._realWorldSeconds -= 1
@@ -184,7 +203,8 @@ class ItemNode(object):
         minutes, secs = divmod(self._realWorldSeconds, 60)
         timeFormat = '{:02d}:{:02d}'.format(minutes, secs)
         self.SpawnLabelText.set("Spawn Active: " + timeFormat)
-        self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='green', justify='left',
+        self.cdLabel = tk.Label(self._nodeFrame, textvariable=self.SpawnLabelText, bg='#858585', fg='green',
+                                justify='left',
                                 font=self._labelFont)
         self.cdLabel.grid(row=4, column=0, columnspan=2, sticky=tk.W)
         self._realWorldSeconds -= 1
