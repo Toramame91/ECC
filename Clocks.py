@@ -57,12 +57,6 @@ class EorzeanClock(object):
         ctLabel.grid(row=1, column=3, columnspan=2, sticky=tk.W)
         ctLabel.after(1000, self.LocalTimeDisplay)
 
-    def FindEorzeaTime(self):
-        localEpoch = int(time.time() * 1000)  # local epoch currentTime
-        epoch = localEpoch * 20.57142857142857  # local epoch times 3600/175 for eorzea currentTime conversion
-
-        return epoch
-
     def ConvertEorzea(self):
         localEpoch = int(time.time() * 1000)  # local epoch currentTime
         epoch = localEpoch * 20.57142857142857  # local epoch times 3600/175 for eorzea currentTime conversion

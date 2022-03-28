@@ -2,7 +2,7 @@ from tkinter import Button
 
 from ItemNode import *
 from NodeList import NodeLists
-import threading
+
 
 def navBarDisplay(_frame):
     # create title bar for navigation menu
@@ -85,7 +85,6 @@ class Win(tk.Tk):
         clockDisplay.EorzeaTimeDisplay()
         # -- display for Local Time
         clockDisplay.LocalTimeDisplay()
-        # call item node class
 
     # --------------------------------------
     # Functions
@@ -109,6 +108,7 @@ class Win(tk.Tk):
         for ewGatherPoint in nodelist.GetEndwalkerListLegendary():
             LegendaryNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
             self.update()
+            time.sleep(0.5)
             self.nodeCount += 1
 
     def SwapDisplayEphemeralNodes(self, nodelist):
@@ -117,6 +117,7 @@ class Win(tk.Tk):
         for ewGatherPoint in nodelist.GetEndwalkerListEphemeral():
             EphemeralNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
             self.update()
+            time.sleep(0.5)
             self.nodeCount += 1
 
     def SwapDisplayUnspoiledNodes(self, nodelist):
@@ -125,6 +126,7 @@ class Win(tk.Tk):
         for ewGatherPoint in nodelist.GetEndwalkerListUnspoiled():
             UnspoiledNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
             self.update()
+            time.sleep(0.5)
             self.nodeCount += 1
 
     def ClearMainConsoleFrame(self):
@@ -132,14 +134,6 @@ class Win(tk.Tk):
             widgets.destroy()
             self.update()
             self.nodeCount -= 1
-
-    # def refresh(self):
-    #     self.root.update()
-    #     self.root.after(1000, self.refresh)
-    #
-    # def start(self):
-    #     self.refresh()
-    #     threading.Thread(target=doingALotOfStuff).start()
 
 
 if __name__ == "__main__":
