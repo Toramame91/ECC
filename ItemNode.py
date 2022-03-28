@@ -19,7 +19,7 @@ class ItemNode(object):
         self._realWorldSeconds = 0
         self._labelFont = ('helvetica', 10)
         self.SpawnTime0 = 0
-        self.activeTimer = 160
+        self.activeTimer = None
         self.active = False
         self.cdLabel = None
         self.SpawnLabelText = tk.StringVar()
@@ -365,3 +365,94 @@ class EphemeralNode(ItemNode):
             self.CooldownCountdown()
         else:
             self.cdLabel.after(1000, self.ActiveCountdown)
+
+
+class UnspoiledNode(ItemNode):
+    def __init__(self, frame, gpID, nodeNum):
+        super().__init__(frame, gpID, nodeNum)
+        self.SpawnTime1 = None
+
+        # -------------------------------------
+        # API
+        # -------------------------------------
+
+        # API REQUESTS ************************
+
+        # REQUESTS FOR GATHERING ITEM DATA
+        gatherDataCacheLeg = requests.get(f'https://xivapi.com/GatheringPoint/{self._GatheringPointID}?private_key=45484ebc973f443fae7a525fc0557ac832dacf8e079c47e195717cf0f6df32dd')
+
+        # JSON CREATION ***********************
+
+        # JSONS WITH GATHERING ITEM DATA
+
+        gatheringPointData = gatherDataCacheLeg.text
+        parse_gatheringPointData = json.loads(gatheringPointData)
+
+        # resolve all item0 labels and icons
+        itemName0 = parse_gatheringPointData['GatheringPointBase']['Item0']['Item']['Name']
+        self.SpawnTime0 = int(parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime0'])
+        fNodeSpawnTime0 = f'{self.SpawnTime0:04d}'
+        self.SpawnTime1 = int(parse_gatheringPointData['GatheringPointTransient']['GatheringRarePopTimeTable']['StartTime1'])
+        fNodeSpawnTime1 = f'{self.SpawnTime1:04d}'
+        iconURLParse0 = self.API_URL + parse_gatheringPointData['GatheringPointBase']['Item0']['Item']['Icon']
+        req0 = Request(iconURLParse0, headers={'User-Agent': 'Mozilla/5.0'})
+        iconURL0 = urlopen(req0)
+        itemIcon0read = io.BytesIO(iconURL0.read())
+        pil_img0 = Image.open(itemIcon0read)
+        resizedIcon0 = pil_img0.resize((25, 25), Image.ANTIALIAS)
+        itemIcon0 = ImageTk.PhotoImage(resizedIcon0)
+        tk.Label(self._nodeFrame, text=itemName0, relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=0, column=1, sticky=tk.W)
+
+        iconDisplay0 = tk.Label(self._nodeFrame, image=itemIcon0, bg="#858585")
+        iconDisplay0.grid(row=0, column=0, sticky=tk.W)
+        iconDisplay0.image = itemIcon0
+
+        locationMapName = parse_gatheringPointData['TerritoryType']['PlaceName']['Name']
+        locationPlaceName = parse_gatheringPointData['PlaceName']['Name']
+        iconURLParseGtype = self.API_URL + parse_gatheringPointData['GatheringPointBase']['GatheringType']['IconMain']
+        reqGType = Request(iconURLParseGtype, headers={'User-Agent': 'Mozilla/5.0'})
+        iconURLGType = urlopen(reqGType)
+        itemGatheringTypeRead = io.BytesIO(iconURLGType.read())
+        pil_imgGType = Image.open(itemGatheringTypeRead)
+        resizedIconGType = pil_imgGType.resize((25, 25), Image.ANTIALIAS)
+        gatheringTypeIcon = ImageTk.PhotoImage(resizedIconGType)
+        tk.Label(self._nodeFrame,
+                 text=locationPlaceName + " ," + locationMapName,
+                 relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=2, column=0, columnspan=4, sticky=tk.W)
+
+        gatheringIconDisplay = tk.Label(self._nodeFrame, image=gatheringTypeIcon, bg="#858585")
+        gatheringIconDisplay.grid(row=5, column=0, sticky=tk.W)
+        gatheringIconDisplay.image = gatheringTypeIcon
+
+        # labels for spawn currentTime
+        tk.Label(self._nodeFrame,
+                 text=fNodeSpawnTime0 + " / " + fNodeSpawnTime1 + " Eorzean Time", bg='#858585',
+                 font=self._labelFont).grid(row=3, column=0, columnspan=2, sticky=tk.W)
+
+        # resolve item 1 if it exists
+        if parse_gatheringPointData['GatheringPointBase']['Item1']:
+            itemName1 = parse_gatheringPointData['GatheringPointBase']['Item1']['Item']['Name']
+            iconURLParse1 = self.API_URL + parse_gatheringPointData['GatheringPointBase']['Item1']['Item']['Icon']
+            req1 = Request(iconURLParse1, headers={'User-Agent': 'Mozilla/5.0'})
+            iconURL1 = urlopen(req1)
+            itemIcon1read = io.BytesIO(iconURL1.read())
+            pil_img1 = Image.open(itemIcon1read)
+            resizedIcon1 = pil_img1.resize((25, 25), Image.ANTIALIAS)
+            itemIcon1 = ImageTk.PhotoImage(resizedIcon1)
+            tk.Label(self._nodeFrame,
+                     text=itemName1,
+                     relief='flat', justify='left', bg='#858585', font=self._labelFont).grid(row=1, column=1, sticky=tk.W)
+            iconDisplay1 = tk.Label(self._nodeFrame, image=itemIcon1, bg="#858585")
+            iconDisplay1.grid(row=1, column=0, sticky=tk.W)
+            iconDisplay1.image = itemIcon1
+
+        # labels for active/cooldown timers
+
+        currentEorzeaTime = EorzeanClock.ConvertEorzea(self)
+        self._realWorldSeconds = self.FindRealSeconds(self.FindNextSpawn(currentEorzeaTime))
+        self.IsActive(currentEorzeaTime)
+        if not self.active:
+            self.CooldownCountdown()
+        elif self.active:
+            self.ActiveCountdown()
+

@@ -2,7 +2,7 @@ from tkinter import Button
 
 from ItemNode import *
 from NodeList import NodeLists
-
+import threading
 
 def navBarDisplay(_frame):
     # create title bar for navigation menu
@@ -105,23 +105,41 @@ class Win(tk.Tk):
     def SwapDisplayLegendaryNodes(self, nodelist):
         self.ClearMainConsoleFrame()
 
-        print("hi")
+        self.update()
         for ewGatherPoint in nodelist.GetEndwalkerListLegendary():
             LegendaryNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
+            self.update()
             self.nodeCount += 1
 
     def SwapDisplayEphemeralNodes(self, nodelist):
         self.ClearMainConsoleFrame()
-
-        print("hi")
+        self.update()
         for ewGatherPoint in nodelist.GetEndwalkerListEphemeral():
             EphemeralNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
+            self.update()
+            self.nodeCount += 1
+
+    def SwapDisplayUnspoiledNodes(self, nodelist):
+        self.ClearMainConsoleFrame()
+        self.update()
+        for ewGatherPoint in nodelist.GetEndwalkerListUnspoiled():
+            UnspoiledNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
+            self.update()
             self.nodeCount += 1
 
     def ClearMainConsoleFrame(self):
         for widgets in self.mainConsoleFrame.winfo_children():
             widgets.destroy()
+            self.update()
             self.nodeCount -= 1
+
+    # def refresh(self):
+    #     self.root.update()
+    #     self.root.after(1000, self.refresh)
+    #
+    # def start(self):
+    #     self.refresh()
+    #     threading.Thread(target=doingALotOfStuff).start()
 
 
 if __name__ == "__main__":
@@ -151,5 +169,15 @@ if __name__ == "__main__":
                                  borderwidth='2',
                                  command=lambda: win.SwapDisplayEphemeralNodes(nodes))
     EphemeralNodeButton.grid(row=3, column=0, padx=20, pady=20)
+
+    UnspoiledNodeButton = Button(win.sideBarFrame,
+                                 text="Unspoiled",
+                                 font=('Ubuntu', 12),
+                                 fg='white',
+                                 bg='#443E3E',
+                                 relief='solid',
+                                 borderwidth='2',
+                                 command=lambda: win.SwapDisplayUnspoiledNodes(nodes))
+    UnspoiledNodeButton.grid(row=4, column=0, padx=20, pady=20)
 
     win.mainloop()
