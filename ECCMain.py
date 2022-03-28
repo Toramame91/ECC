@@ -32,6 +32,7 @@ class Win(tk.Tk):
         self.cache = None
 
         self.mainConsoleFrame = None
+        self.sideBarFrame = None
 
         # set starting position of window to be 0,0
         self.x = 0
@@ -52,12 +53,12 @@ class Win(tk.Tk):
         # -------------------------------------
         # create and configure frames for navigation bar, main console, timers
         # -------------------------------------
-        sideBarFrame = tk.Frame(self, height=800, width=350, bg='#443E3E', relief='raised', bd=1)
+        self.sideBarFrame = tk.Frame(self, height=800, width=350, bg='#443E3E', relief='raised', bd=1)
         self.mainConsoleFrame = tk.Frame(self, height=700, width=1100, bg='#443E3E', relief='groove', bd=1)
         timerFrame = tk.Frame(self, height=100, width=1100, bg='#443E3E', relief='groove', bd=1)
 
         # configure grid layout  for each frame      
-        sideBarFrame.grid(row=1, column=0, rowspan=4, sticky='w')
+        self.sideBarFrame.grid(row=1, column=0, rowspan=4, sticky='w')
         self.mainConsoleFrame.grid(row=2, column=1, columnspan=4, sticky=tk.NW)
         timerFrame.grid(row=1, column=1, columnspan=4, sticky=tk.N)
         timerFrame.rowconfigure(0, weight=1)
@@ -70,7 +71,7 @@ class Win(tk.Tk):
 
         # disable resizing of frames to widgets
         self.mainConsoleFrame.grid_propagate(0)
-        sideBarFrame.grid_propagate(0)
+        self.sideBarFrame.grid_propagate(0)
         timerFrame.grid_propagate(0)
 
         # -------------------------------------
@@ -78,27 +79,13 @@ class Win(tk.Tk):
         # -------------------------------------
 
         # -- displays for navigation bar
-        navBarDisplay(sideBarFrame)
+        navBarDisplay(self.sideBarFrame)
         # -- displays for Eorzea Time
         clockDisplay = EorzeanClock(timerFrame)
         clockDisplay.EorzeaTimeDisplay()
         # -- display for Local Time
         clockDisplay.LocalTimeDisplay()
         # call item node class
-        nodes = NodeLists()
-
-        # -------------------------------------
-        # BUTTONS
-        # -------------------------------------
-        LegendaryNodeButton = Button(sideBarFrame,
-                                     text="Legendary",
-                                     font=('Ubuntu', 12),
-                                     fg='white',
-                                     bg='#443E3E',
-                                     relief='solid',
-                                     borderwidth='2',
-                                     command=self.SwapDisplayLegendaryNodes(nodes))
-        LegendaryNodeButton.grid(row=2, column=0, padx=20, pady=20)
 
     # --------------------------------------
     # Functions
@@ -118,14 +105,18 @@ class Win(tk.Tk):
     def SwapDisplayLegendaryNodes(self, nodelist):
         self.ClearMainConsoleFrame()
 
+        print("hi")
         for ewGatherPoint in nodelist.GetEndwalkerListLegendary():
-            ItemNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
+            LegendaryNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
             self.nodeCount += 1
 
     def SwapDisplayEphemeralNodes(self, nodelist):
         self.ClearMainConsoleFrame()
 
-        ewEphemeral = NodeLists()
+        print("hi")
+        for ewGatherPoint in nodelist.GetEndwalkerListEphemeral():
+            EphemeralNode(self.mainConsoleFrame, ewGatherPoint, self.nodeCount)
+            self.nodeCount += 1
 
     def ClearMainConsoleFrame(self):
         for widgets in self.mainConsoleFrame.winfo_children():
@@ -133,6 +124,32 @@ class Win(tk.Tk):
             self.nodeCount -= 1
 
 
-win = Win()
+if __name__ == "__main__":
+    win = Win()
 
-win.mainloop()
+    nodes = NodeLists()
+    # -------------------------------------
+    # BUTTONS
+    # -------------------------------------
+
+    LegendaryNodeButton = Button(win.sideBarFrame,
+                                 text="Legendary",
+                                 font=('Ubuntu', 12),
+                                 fg='white',
+                                 bg='#443E3E',
+                                 relief='solid',
+                                 borderwidth='2',
+                                 command=lambda: win.SwapDisplayLegendaryNodes(nodes))
+    LegendaryNodeButton.grid(row=2, column=0, padx=20, pady=20)
+
+    EphemeralNodeButton = Button(win.sideBarFrame,
+                                 text="Ephemeral",
+                                 font=('Ubuntu', 12),
+                                 fg='white',
+                                 bg='#443E3E',
+                                 relief='solid',
+                                 borderwidth='2',
+                                 command=lambda: win.SwapDisplayEphemeralNodes(nodes))
+    EphemeralNodeButton.grid(row=3, column=0, padx=20, pady=20)
+
+    win.mainloop()
